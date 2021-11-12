@@ -3,7 +3,7 @@
 
 #include "Templates/SharedPointer.h"
 
-namespace SD
+namespace FE
 {
 	namespace Errors
 	{

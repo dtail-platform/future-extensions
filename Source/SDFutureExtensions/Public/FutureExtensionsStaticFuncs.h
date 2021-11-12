@@ -6,7 +6,7 @@
 #include "ExpectedFuture.h"
 #include "SDFutureExtensions/Private/FutureExtensionTaskGraph.h"
 
-namespace SD
+namespace FE
 {
 	enum class EFailMode
 	{
@@ -15,13 +15,13 @@ namespace SD
 	};
 
 	template<typename F>
-	auto Async(F&& Function, const SD::FExpectedFutureOptions& FutureOptions = SD::FExpectedFutureOptions())
+	auto Async(F&& Function, const FE::FExpectedFutureOptions& FutureOptions = FE::FExpectedFutureOptions())
 	{
 		return FutureInitialisationDetails::CreateExpectedFuture(Forward<F>(Function), FutureOptions);
 	}
 
 	template<typename T>
-	SD::TExpectedFuture<TArray<T>> WhenAll(const TArray<SD::TExpectedFuture<T>>& Futures, const EFailMode FailMode)
+	FE::TExpectedFuture<TArray<T>> WhenAll(const TArray<FE::TExpectedFuture<T>>& Futures, const EFailMode FailMode)
 	{
 		if (Futures.Num() == 0)
 		{
@@ -29,13 +29,13 @@ namespace SD
 		}
 
 		const auto CounterRef = MakeShared<std::atomic<int32>, ESPMode::ThreadSafe>(Futures.Num());
-		const auto PromiseRef = MakeShared<SD::TExpectedPromise<TArray<T>>, ESPMode::ThreadSafe>();
+		const auto PromiseRef = MakeShared<FE::TExpectedPromise<TArray<T>>, ESPMode::ThreadSafe>();
 		const auto ValueRef = MakeShared<TArray<T>, ESPMode::ThreadSafe>();
-		const auto FirstErrorRef = MakeShared<SD::TExpectedPromise<TArray<T>>, ESPMode::ThreadSafe>();
+		const auto FirstErrorRef = MakeShared<FE::TExpectedPromise<TArray<T>>, ESPMode::ThreadSafe>();
 
 		const auto SetPromise = [FirstErrorRef, PromiseRef]()
 		{
-			FirstErrorRef->GetFuture().Then([PromiseRef](SD::TExpected<TArray<T>> Result) {PromiseRef->SetValue(MoveTemp(Result)); });
+			FirstErrorRef->GetFuture().Then([PromiseRef](FE::TExpected<TArray<T>> Result) {PromiseRef->SetValue(MoveTemp(Result)); });
 		};
 
 		if (FailMode == EFailMode::Fast)
@@ -45,7 +45,7 @@ namespace SD
 
 		for (const auto& Future : Futures)
 		{
-			Future.Then([CounterRef, ValueRef, FirstErrorRef, SetPromise, FailMode](const SD::TExpected<T>& Result)
+			Future.Then([CounterRef, ValueRef, FirstErrorRef, SetPromise, FailMode](const FE::TExpected<T>& Result)
 				{
 					if (Result.IsCompleted())
 					{
@@ -71,24 +71,24 @@ namespace SD
 	}
 
 	template<typename T>
-	SD::TExpectedFuture<TArray<T>> WhenAll(const TArray<SD::TExpectedFuture<T>>& Futures) { return WhenAll<T>(Futures, EFailMode::Full); }
+	FE::TExpectedFuture<TArray<T>> WhenAll(const TArray<FE::TExpectedFuture<T>>& Futures) { return WhenAll<T>(Futures, EFailMode::Full); }
 
-	SDFUTUREEXTENSIONS_API SD::TExpectedFuture<void> WhenAll(const TArray<SD::TExpectedFuture<void>>& Futures, const EFailMode FailMode);
-	SDFUTUREEXTENSIONS_API SD::TExpectedFuture<void> WhenAll(const TArray<SD::TExpectedFuture<void>>& Futures);
+	SDFUTUREEXTENSIONS_API FE::TExpectedFuture<void> WhenAll(const TArray<FE::TExpectedFuture<void>>& Futures, const EFailMode FailMode);
+	SDFUTUREEXTENSIONS_API FE::TExpectedFuture<void> WhenAll(const TArray<FE::TExpectedFuture<void>>& Futures);
 
 	template<typename T>
-	SD::TExpectedFuture<T> WhenAny(const TArray<SD::TExpectedFuture<T>>& Futures)
+	FE::TExpectedFuture<T> WhenAny(const TArray<FE::TExpectedFuture<T>>& Futures)
 	{
 		if (Futures.Num() == 0)
 		{
-			return SD::MakeErrorFuture<T>(Error(Errors::ERROR_INVALID_ARGUMENT, TEXT("SD::WhenAny - Must have at least one element in the array.")));
+			return FE::MakeErrorFuture<T>(Error(Errors::ERROR_INVALID_ARGUMENT, TEXT("FE::WhenAny - Must have at least one element in the array.")));
 		}
-		auto PromiseRef = MakeShared<SD::TExpectedPromise<T>, ESPMode::ThreadSafe>();
+		auto PromiseRef = MakeShared<FE::TExpectedPromise<T>, ESPMode::ThreadSafe>();
 		for (auto& Future : Futures)
 		{
-			Future.Then([PromiseRef](const SD::TExpected<T>& Result)
+			Future.Then([PromiseRef](const FE::TExpected<T>& Result)
 				{
-					PromiseRef->SetValue(SD::TExpected<T>(Result));
+					PromiseRef->SetValue(FE::TExpected<T>(Result));
 				});
 		}
 		return PromiseRef->GetFuture();

@@ -32,9 +32,9 @@ class FFutureTestSpec_Basic : public FFutureTestSpec
 		DefaultTimeout = FTimespan::FromSeconds(0.2);
 	}
 
-	SD::TExpectedFuture<FString> AsyncAddTen(int32 Value)
+	FE::TExpectedFuture<FString> AsyncAddTen(int32 Value)
 	{
-		return SD::Async([Value]()
+		return FE::Async([Value]()
 		{
 			return FString::Printf(TEXT("%i"), Value + 10);
 		});
@@ -46,10 +46,10 @@ void FFutureTestSpec_Basic::Define()
 {
 	LatentIt("Can run future", [this](const auto& Done)
 	{
-		SD::TExpectedFuture<void> VoidFuture = SD::MakeReadyFuture();
+		FE::TExpectedFuture<void> VoidFuture = FE::MakeReadyFuture();
 		TestTrue("Future is ready", VoidFuture.IsReady());
 
-		VoidFuture.Then([this, Done](SD::TExpected<void> Expected)
+		VoidFuture.Then([this, Done](FE::TExpected<void> Expected)
 		{
 			TestTrue("Future is completed", Expected.IsCompleted());
 			Done.Execute();
@@ -58,7 +58,7 @@ void FFutureTestSpec_Basic::Define()
 
 	LatentIt("Will run future on Then and not before", [this](const auto& Done)
 	{
-		SD::TExpectedFuture<int32> FirstFuture = SD::Async([]()
+		FE::TExpectedFuture<int32> FirstFuture = FE::Async([]()
 		{
 			return 10;
 		});
@@ -72,16 +72,16 @@ void FFutureTestSpec_Basic::Define()
 
 	LatentIt("Can pass expect directly to next step", [this](const auto& Done)
 	{
-		SD::Async([]()
+		FE::Async([]()
 		{
 			return 10;
 		})
-		.Then([](SD::TExpected<int32> Expected)
+		.Then([](FE::TExpected<int32> Expected)
 		{
 			//Pass initial result straight through
 			return Expected;
 		})
-		.Then([this, Done](SD::TExpected<int32> Expected)
+		.Then([this, Done](FE::TExpected<int32> Expected)
 		{
 			TestTrue("Expected was completed", Expected.IsCompleted());
 			TestTrue("Expected result TOptional is set", Expected.GetValue().IsSet());
@@ -94,7 +94,7 @@ void FFutureTestSpec_Basic::Define()
 	{
 		LatentIt("Can capture and return the value", [this](const auto& Done)
 		{
-			SD::MakeReadyFuture<int32>(13)
+			FE::MakeReadyFuture<int32>(13)
 			.Then([this, Done](int32 Expected)
 			{
 				TestEqual("Value", Expected, 13);
@@ -104,7 +104,7 @@ void FFutureTestSpec_Basic::Define()
 
 		LatentIt("Can concatenate Then", [this](const auto& Done)
 		{
-			SD::MakeReadyFuture<int32>(13)
+			FE::MakeReadyFuture<int32>(13)
 			.Then([this](int32 Result)
 			{
 				TestEqual("Value on first Then", Result, 13);
@@ -119,7 +119,7 @@ void FFutureTestSpec_Basic::Define()
 
 		LatentIt("Can capture initial value and then concatenate void", [this](const auto& Done)
 		{
-			SD::MakeReadyFuture<int32>(13)
+			FE::MakeReadyFuture<int32>(13)
 			.Then([this](int32 Result)
 			{
 				TestEqual("Value on first Then", Result, 13);
@@ -132,7 +132,7 @@ void FFutureTestSpec_Basic::Define()
 
 		LatentIt("Can execute with no capture and then concatenate with capture", [this](const auto& Done)
 		{
-			SD::MakeReadyFuture()
+			FE::MakeReadyFuture()
 			.Then([this]()
 			{
 				return 20;
@@ -150,8 +150,8 @@ void FFutureTestSpec_Basic::Define()
 	{
 		LatentIt("Can capture and return the value", [this](const auto& Done)
 		{
-			SD::MakeReadyFuture<int32>(13)
-			.Then([this, Done](SD::TExpected<int32> Expected)
+			FE::MakeReadyFuture<int32>(13)
+			.Then([this, Done](FE::TExpected<int32> Expected)
 			{
 				TestTrue("Future is completed", Expected.IsCompleted());
 				TestEqual("Value", *Expected, 13);
@@ -161,13 +161,13 @@ void FFutureTestSpec_Basic::Define()
 
 		LatentIt("Can concatenate Then", [this](const auto& Done)
 		{
-			SD::MakeReadyFuture<int32>(13)
-			.Then([this](SD::TExpected<int32> Result)
+			FE::MakeReadyFuture<int32>(13)
+			.Then([this](FE::TExpected<int32> Result)
 			{
 				TestEqual("Value on first Then", *Result, 13);
 				return *Result + 7;
 			})
-			.Then([this, Done](SD::TExpected<int32> Result)
+			.Then([this, Done](FE::TExpected<int32> Result)
 			{
 				TestTrue("Future is completed", Result.IsCompleted());
 				TestEqual("Value on second Then", *Result, 20);
@@ -177,12 +177,12 @@ void FFutureTestSpec_Basic::Define()
 
 		LatentIt("Can capture initial value and then concatenate void", [this](const auto& Done)
 		{
-			SD::MakeReadyFuture<int32>(13)
-			.Then([this](SD::TExpected<int32> Result)
+			FE::MakeReadyFuture<int32>(13)
+			.Then([this](FE::TExpected<int32> Result)
 			{
 				TestEqual("Value on first Then", *Result, 13);
 			})
-			.Then([this, Done](SD::TExpected<void> Result)
+			.Then([this, Done](FE::TExpected<void> Result)
 			{
 				TestTrue("Future is completed", Result.IsCompleted());
 				Done.Execute();
@@ -191,12 +191,12 @@ void FFutureTestSpec_Basic::Define()
 
 		LatentIt("Can execute with no capture and then concatenate with capture", [this](const auto& Done)
 		{
-			SD::MakeReadyFuture()
+			FE::MakeReadyFuture()
 			.Then([this]()
 			{
 				return 20;
 			})
-			.Then([this, Done](SD::TExpected<int32> Result)
+			.Then([this, Done](FE::TExpected<int32> Result)
 			{
 				TestTrue("Future is completed", Result.IsCompleted());
 				TestEqual("Value on second Then", *Result, 20);
@@ -206,11 +206,11 @@ void FFutureTestSpec_Basic::Define()
 
 		LatentIt("Can change future captured type", [this](const auto& Done)
 		{
-			SD::MakeReadyFuture().Then([]()
+			FE::MakeReadyFuture().Then([]()
 			{
-				return SD::MakeReadyExpected(10);
+				return FE::MakeReadyExpected(10);
 			})
-			.Then([this, Done](SD::TExpected<int32> Result)
+			.Then([this, Done](FE::TExpected<int32> Result)
 			{
 				TestTrue("Future is completed", Result.IsCompleted());
 				TestEqual("Value on second Then", *Result, 10);
@@ -221,8 +221,8 @@ void FFutureTestSpec_Basic::Define()
 
 	LatentIt("Can return a TOptional", [this](const auto& Done)
 	{
-		SD::MakeReadyFuture<int32>(5)
-		.Then([this, Done](SD::TExpected<int32> Expected)
+		FE::MakeReadyFuture<int32>(5)
+		.Then([this, Done](FE::TExpected<int32> Expected)
 		{
 			TestTrue("Expected was completed", Expected.IsCompleted());
 			TestTrue("Expected result TOptional is set", Expected.GetValue().IsSet());
@@ -236,7 +236,7 @@ void FFutureTestSpec_Basic::Define()
 		LatentIt("Can execute Async without return", [this](const auto& Done)
 		{
 			CapturedInt = 0;
-			SD::Async([this]()
+			FE::Async([this]()
 			{
 				CapturedInt = 23;
 			})
@@ -249,7 +249,7 @@ void FFutureTestSpec_Basic::Define()
 
 		LatentIt("Can execute Async with return", [this](const auto& Done)
 		{
-			SD::Async([]()
+			FE::Async([]()
 			{
 				return 5;
 			})
@@ -262,7 +262,7 @@ void FFutureTestSpec_Basic::Define()
 
 		LatentIt("Can unwrap Async inside Then", [this](const auto& Done)
 		{
-			SD::MakeReadyFuture()
+			FE::MakeReadyFuture()
 			.Then([this]()
 			{
 				return AsyncAddTen(10);
@@ -276,12 +276,12 @@ void FFutureTestSpec_Basic::Define()
 
 		LatentIt("Can unwrap inside an unwrapped Async inside Then", [this](const auto& Done)
 		{
-			SD::MakeReadyFuture()
+			FE::MakeReadyFuture()
 			.Then([this]()
 			{
-				return SD::Async([this]()
+				return FE::Async([this]()
 				{
-					return SD::MakeReadyExpected(5);
+					return FE::MakeReadyExpected(5);
 				});
 			})
 			.Then([this, Done](int32 Result)
@@ -293,7 +293,7 @@ void FFutureTestSpec_Basic::Define()
 
 		LatentIt("Can unwrap Async inside Async", [this](const auto& Done)
 		{
-			SD::Async([this]()
+			FE::Async([this]()
 			{
 				return AsyncAddTen(20);
 			})
@@ -307,11 +307,11 @@ void FFutureTestSpec_Basic::Define()
 		LatentIt("Captured lambda value can be changed", [this](const auto& Done)
 		{
 			CapturedInt = 2;
-			SD::Async([this]()
+			FE::Async([this]()
 			{
 				CapturedInt = 5;
 			})
-			.Then([this, Done](SD::TExpected<void> Expected)
+			.Then([this, Done](FE::TExpected<void> Expected)
 			{
 				TestTrue("Expected was completed", Expected.IsCompleted());
 				TestEqual("Captured value", CapturedInt, 5);
@@ -324,11 +324,11 @@ void FFutureTestSpec_Basic::Define()
 	{
 		LatentIt("Can return an error and be received in expected then", [this](const auto& Done)
 		{
-			SD::Async([this]()
+			FE::Async([this]()
 			{
-				return SD::MakeErrorExpected<int32>(SD::Error(ErrorCode, ErrorContext, TEXT("Bad times!")));
+				return FE::MakeErrorExpected<int32>(FE::Error(ErrorCode, ErrorContext, TEXT("Bad times!")));
 			})
-			.Then([this, Done](SD::TExpected<int32> Expected)
+			.Then([this, Done](FE::TExpected<int32> Expected)
 			{
 				TestTrue("Result is an error", Expected.IsError());
 				TestEqual("Error Code", Expected.GetError()->GetErrorCode(), ErrorCode);
@@ -342,16 +342,16 @@ void FFutureTestSpec_Basic::Define()
 		{
 			bThenCalled = false;
 
-			SD::Async([this]()
+			FE::Async([this]()
 			{
-				return SD::MakeErrorExpected<int32>(SD::Error(ErrorCode, ErrorContext));
+				return FE::MakeErrorExpected<int32>(FE::Error(ErrorCode, ErrorContext));
 			})
 			.Then([this](int32 Expected)
 			{
 				bThenCalled = true;
 				return Expected;
 			})
-			.Then([this, Done](SD::TExpected<int32> Expected)
+			.Then([this, Done](FE::TExpected<int32> Expected)
 			{
 				TestTrue("Result is an error", Expected.IsError());
 				TestEqual("Error Code", Expected.GetError()->GetErrorCode(), ErrorCode);
@@ -364,15 +364,15 @@ void FFutureTestSpec_Basic::Define()
 
 		LatentIt("Error can be passed through captured type change", [this](const auto& Done)
 		{
-			SD::Async([this]()
+			FE::Async([this]()
 			{
-				return SD::MakeErrorExpected<int32>(SD::Error(ErrorCode, ErrorContext));
+				return FE::MakeErrorExpected<int32>(FE::Error(ErrorCode, ErrorContext));
 			})
 			.Then([this](int32 Expected)
 			{
 				return FString{};
 			})
-			.Then([this, Done](SD::TExpected<FString> Expected)
+			.Then([this, Done](FE::TExpected<FString> Expected)
 			{
 				TestTrue("Result is an error", Expected.IsError());
 				TestEqual("Error Code", Expected.GetError()->GetErrorCode(), ErrorCode);
@@ -383,11 +383,11 @@ void FFutureTestSpec_Basic::Define()
 
 		LatentIt("Can handle error", [this](const auto& Done)
 		{
-			SD::Async([this]()
+			FE::Async([this]()
 			{
-				return SD::MakeErrorExpected<int32>(SD::Error(ErrorCode, ErrorContext, TEXT("Bad times!")));
+				return FE::MakeErrorExpected<int32>(FE::Error(ErrorCode, ErrorContext, TEXT("Bad times!")));
 			})
-			.Then([this](SD::TExpected<int32> Expected)
+			.Then([this](FE::TExpected<int32> Expected)
 			{
 				if (Expected.IsError())
 				{
@@ -395,7 +395,7 @@ void FFutureTestSpec_Basic::Define()
 				}
 				return FString{};
 			})
-			.Then([this, Done](SD::TExpected<FString> Expected)
+			.Then([this, Done](FE::TExpected<FString> Expected)
 			{
 				TestFalse("Result is an error", Expected.IsError());
 				TestTrue("Result is completed", Expected.IsCompleted());

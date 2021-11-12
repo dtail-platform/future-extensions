@@ -4,7 +4,7 @@
 #include "Templates/IntegralConstant.h"
 #include "Runtime/Launch/Resources/Version.h"
 
-namespace SD
+namespace FE
 {
 	template <class ResultType>
 	class TExpected;

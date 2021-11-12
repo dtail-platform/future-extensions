@@ -72,12 +72,12 @@ Key to their utility is that continuations provide a mechanism for users to use 
 A **value-based continuation** is only scheduled if the antecendent `TExpectedFuture` was successful. A **value-based continuation** is defined as below, note how the continuation parameter is `int` as opposed to `TExpected<int>`:
 
 ```cpp
-SD::TExpectedFuture<int> FirstFuture = SD::Async([]() {
-    return SD::MakeErrorExpected<int>(SD::Error(TEST_ERROR_CODE, TEST_ERROR_CONTEXT));
+FE::TExpectedFuture<int> FirstFuture = FE::Async([]() {
+    return FE::MakeErrorExpected<int>(FE::Error(TEST_ERROR_CODE, TEST_ERROR_CONTEXT));
 });
  
 bool bContinuationCalled = false;
-SD::TExpectedFuture<void> SecondFuture = FirstFuture.Then([&bContinuationCalled](int ExpectedResult) {
+FE::TExpectedFuture<void> SecondFuture = FirstFuture.Then([&bContinuationCalled](int ExpectedResult) {
     bContinuationCalled = true;
 });
  
@@ -87,13 +87,13 @@ TestFalse("Continuation has not been called", bContinuationCalled);
 A **expected-based continuation** is scheduled regardless of the state of the antecendent future:
 
 ```cpp
-SD::TExpectedFuture<int> FirstFuture = SD::Async([]() {
-    return SD::MakeErrorExpected<int>(SD::Error(TEST_ERROR_CODE, TEST_ERROR_CONTEXT, TEST_ERROR_INFO));
+FE::TExpectedFuture<int> FirstFuture = FE::Async([]() {
+    return FE::MakeErrorExpected<int>(FE::Error(TEST_ERROR_CODE, TEST_ERROR_CONTEXT, TEST_ERROR_INFO));
 });
  
 int InternalError = 0;
  
-SD::TExpectedFuture<void> SecondFuture = FirstFuture.Then([&](SD::TExpected<int> ExpectedResult) {
+FE::TExpectedFuture<void> SecondFuture = FirstFuture.Then([&](FE::TExpected<int> ExpectedResult) {
     if (ExpectedResult.IsError())
     {
         InternalError = ExpectedResult.GetError()->GetErrorCode();
@@ -109,10 +109,10 @@ This functionality can be useful when composing multiple asynchronous calls in a
 
 A common pattern with continuations is the need to capture an object safely to use within your code block. Often this capture will require use of a weak pointer, pinning of the object to ensure validity, and returning an error if the object is no longer valid.
 
-With automatic lifetime management, this process is handled for you, allowing for less boilerplate. The currently supported types are any `UObject` derived class, or any `TSharedFromThis<>` derived class, but this could be expanded to any type which can retrieve a weak pointer to itself. If the object cannot be pinned a result is returned in the error state with the error code of `SD::Errors::ERROR_OBJECT_DESTROYED`.
+With automatic lifetime management, this process is handled for you, allowing for less boilerplate. The currently supported types are any `UObject` derived class, or any `TSharedFromThis<>` derived class, but this could be expanded to any type which can retrieve a weak pointer to itself. If the object cannot be pinned a result is returned in the error state with the error code of `FE::Errors::ERROR_OBJECT_DESTROYED`.
 
 ```cpp
-SD::TExpectedFuture<int32> UWidget::GetValueAsync()
+FE::TExpectedFuture<int32> UWidget::GetValueAsync()
 {
 	return Super::GetValueAsync()
 		.Then(this, [this](const int32 BaseValue)
@@ -232,7 +232,7 @@ struct FPlayerProfile
  
 FPlayerProfile GetPlayerProfile()
 {
-    SD::TExpectedFuture<FString> ResponseFuture = SD::Async([](){
+    FE::TExpectedFuture<FString> ResponseFuture = FE::Async([](){
         //This call still blocks, but it now does so on a TaskGraph thread
         return HTTPSystem::GetPlayerProfileBlocking();
     });
@@ -253,7 +253,7 @@ void UIScene_PlayerProfile::OnSceneOpen()
 }
 ```
 
-This is better - the blocking call to `GetPlayerProfileBlocking()` is now scheduled to run on the `TaskGraph` using `SD::Async()`, which is a good first step. However this code will still block as it calls `.Get()` - this is how `TFuture` works. `.Get()` is not exposed by the `TExpectedFuture` interface for purely that reason - our interface is non-blocking. 
+This is better - the blocking call to `GetPlayerProfileBlocking()` is now scheduled to run on the `TaskGraph` using `FE::Async()`, which is a good first step. However this code will still block as it calls `.Get()` - this is how `TFuture` works. `.Get()` is not exposed by the `TExpectedFuture` interface for purely that reason - our interface is non-blocking. 
 
 Let's see how we can remove all the blocking behaviour here using continuations.
 
@@ -270,9 +270,9 @@ struct FPlayerProfile
     FPlayerProfile ConvertFromHTTPResponse(const FString& Response);
 }
  
-SD::TExpectedFuture<FPlayerProfile> GetPlayerProfileAsync()
+FE::TExpectedFuture<FPlayerProfile> GetPlayerProfileAsync()
 {
-    return SD::Async([](){
+    return FE::Async([](){
         //This call still blocks, but it now does so on a TaskGraph thread
         return HTTPSystem::GetPlayerProfileBlocking();
     }).Then([](FString HTTPResponse){
@@ -307,18 +307,18 @@ struct FPlayerProfile
     FPlayerProfile ConvertFromHTTPResponse(const FString& Response);
 }
  
-SD::TExpectedFuture<FPlayerProfile> GetPlayerProfileAsync()
+FE::TExpectedFuture<FPlayerProfile> GetPlayerProfileAsync()
 {
-    return SD::Async([](){
+    return FE::Async([](){
         //This call still blocks, but it now does so on a TaskGraph thread
         return HTTPSystem::GetPlayerProfileBlocking();
-    }).Then([](SD::TExpected<FString> HTTPResponse) {
+    }).Then([](FE::TExpected<FString> HTTPResponse) {
         if(HTTPResponse.IsCompleted())
         {
             return ConvertFromHTTPResponse(*HTTPResponse);
         }
  
-        return SD::Convert<FPlayerProfile>(HTTPResponse);
+        return FE::Convert<FPlayerProfile>(HTTPResponse);
     });
 }
  
@@ -326,14 +326,14 @@ SD::TExpectedFuture<FPlayerProfile> GetPlayerProfileAsync()
 void UIScene_PlayerProfile::OnSceneOpen()
 {
     NameWidget.SetSpinner(true);
-    GetPlayerProfileAsync().Then([this](SD::TExpected<FPlayerProfile> PlayerProfileResult) {
+    GetPlayerProfileAsync().Then([this](FE::TExpected<FPlayerProfile> PlayerProfileResult) {
         if(PlayerProfileResult.IsCompleted())
         {
             NameWidget.SetName(PlayerProfileResult.PlayerName);
         }
         else if(PlayerProfileResult.IsError())
         {
-            //Assumes this function understands how to convert from a SD::Error into
+            //Assumes this function understands how to convert from a FE::Error into
             //something suitable for players to see.
             UISystem::ShowErrorDialog(PlayerProfileResult.GetError());
         }
@@ -345,9 +345,9 @@ The continuation attached to `GetPlayerProfileBlocking()` has been changed to an
 
 Any errors that were potentially generated by the antecendent call will be propagated to this continuation. Because of this these errors need to be handled - it cannot be assumed that the result was successful. This is done by checking the state of the passed `TExpected<FString>` parameter via `IsCompleted()` - `Convert...()` is only called if `true` is returned. The `TExpected<FString>` parameter can now be dereferenced to get the contained `HTTPResponse` value which is known to exist as `IsCompleted()` returned `true`. 
 
-However, if `IsCompleted()` returns `false`, we can't convert the response - it's up to the programmer to determine how to handle these situations on a case-by-case basis. In this example, we call `SD::Convert<...>()` to pass whatever state was contained in `HTTPResponse` back to the caller of this function, thus propagating the error downwards for the next continuation in the chain to handle (`SD::Convert` is required here as we need to convert from `SD::TExpected<FString>` to `SD::TExpected<FPlayerProfile>`).
+However, if `IsCompleted()` returns `false`, we can't convert the response - it's up to the programmer to determine how to handle these situations on a case-by-case basis. In this example, we call `FE::Convert<...>()` to pass whatever state was contained in `HTTPResponse` back to the caller of this function, thus propagating the error downwards for the next continuation in the chain to handle (`FE::Convert` is required here as we need to convert from `FE::TExpected<FString>` to `FE::TExpected<FPlayerProfile>`).
 
-The UI code has also been modified to use an **expected-based continuation** - in this case that the `SD::Error` object contained within the unsuccessful `SD::TExpected` parameter is retrieved and shown to the player in an error dialog.
+The UI code has also been modified to use an **expected-based continuation** - in this case that the `FE::Error` object contained within the unsuccessful `FE::TExpected` parameter is retrieved and shown to the player in an error dialog.
 
 #### Cancellation
 
@@ -367,18 +367,18 @@ struct FPlayerProfile
     FPlayerProfile ConvertFromHTTPResponse(const FString& Response);
 }
  
-SD::TExpectedFuture<FPlayerProfile> GetPlayerProfileAsync()
+FE::TExpectedFuture<FPlayerProfile> GetPlayerProfileAsync()
 {
-    return SD::Async([](){
+    return FE::Async([](){
         //This call still blocks, but it now does so on a TaskGraph thread
         return HTTPSystem::GetPlayerProfileBlocking();
-    }).Then([](SD::TExpected<FString> HTTPResponse) {
+    }).Then([](FE::TExpected<FString> HTTPResponse) {
         if(HTTPResponse.IsCompleted())
         {
             return ConvertFromHTTPResponse(*HTTPResponse);
         }
  
-        return SD::Convert<FPlayerProfile>(HTTPResponse);
+        return FE::Convert<FPlayerProfile>(HTTPResponse);
     });
 }
  
@@ -390,27 +390,27 @@ class UIScene_PlayerProfile
     //...
 private:
     //...
-    SD::SharedCancellationHandlePtr CancellationHandle;
+    FE::SharedCancellationHandlePtr CancellationHandle;
 }
  
 //UI Scene
 void UIScene_PlayerProfile::OnSceneOpen()
 {
-    CancellationHandle = SD::CreateCancellationHandle();
+    CancellationHandle = FE::CreateCancellationHandle();
  
     NameWidget.SetSpinner(true);
-    GetPlayerProfileAsync().Then([this](SD::TExpected<FPlayerProfile> PlayerProfileResult) {
+    GetPlayerProfileAsync().Then([this](FE::TExpected<FPlayerProfile> PlayerProfileResult) {
         if(PlayerProfileResult.IsCompleted())
         {
             NameWidget.SetName(PlayerProfileResult.PlayerName);
         }
         else if(PlayerProfileResult.IsError())
         {
-            //Assumes this function understands how to convert from a SD::Error into
+            //Assumes this function understands how to convert from a FE::Error into
             //something suitable for players to see.
             UISystem::ShowErrorDialog(PlayerProfileResult.GetError());
         }
-    }, SD::FExpectedFutureOptions(CancellationHandle));
+    }, FE::FExpectedFutureOptions(CancellationHandle));
 }
  
 void UIScene_PlayerProfile::OnSceneClosed()
@@ -423,7 +423,7 @@ void UIScene_PlayerProfile::OnSceneClosed()
 }
 ```
 
-In this code snippet a `FCancellationHandle` is created using `SD::CreateCancellationHandle()` and passed to the continuation that is chained from `GetPlayerProfileAsync()`. `UIScene_PlayerProfile::OnSceneClosed()` calls `Cancel()` on the `FCancellationHandle` which will attempt to set any promises that have been associated with it to the `Cancelled` state (and therefore not call any associated function bodies).
+In this code snippet a `FCancellationHandle` is created using `FE::CreateCancellationHandle()` and passed to the continuation that is chained from `GetPlayerProfileAsync()`. `UIScene_PlayerProfile::OnSceneClosed()` calls `Cancel()` on the `FCancellationHandle` which will attempt to set any promises that have been associated with it to the `Cancelled` state (and therefore not call any associated function bodies).
 
 In this case, if `Cancel()` is called before `GetPlayerProfileAsync()` has completed then the function body in the continuation will not be run.
 
@@ -504,7 +504,7 @@ void UGameSessionFinder::OnFindSessionsComplete(bool bWasSuccessful)
 This can be converted to a single non-member free function that returns a composable `TExpectedFuture<...>` by combining the delegate call with a `TExpectedPromise<...>`, as shown below:
 
 ```cpp
-SD::TExpectedFuture<TArray<FOnlineSessionSearchResult>> FindSessionsAsync(ULocalPlayer* ForPlayer, const FName SessionName, TSharedPtr<FOnlineSessionSearch> FindSessionsSettings)
+FE::TExpectedFuture<TArray<FOnlineSessionSearchResult>> FindSessionsAsync(ULocalPlayer* ForPlayer, const FName SessionName, TSharedPtr<FOnlineSessionSearch> FindSessionsSettings)
 {
 	checkf(ForPlayer, TEXT("Invalid ULocalPlayer instance"));
 
@@ -516,7 +516,7 @@ SD::TExpectedFuture<TArray<FOnlineSessionSearchResult>> FindSessionsAsync(ULocal
 
     //Create a TExpectedPromise that wraps an array of search results, i.e. the same thing that the FindSession API delegate returns.
     //This is wrapped in a TSharedPtr as it's lifetime needs to be associated with the lambda delegate that sets it.
-	TSharedPtr<SD::TExpectedPromise<TArray<FOnlineSessionSearchResult>>> Promise = MakeShared<SD::TExpectedPromise<TArray<FOnlineSessionSearchResult>>>();
+	TSharedPtr<FE::TExpectedPromise<TArray<FOnlineSessionSearchResult>>> Promise = MakeShared<FE::TExpectedPromise<TArray<FOnlineSessionSearchResult>>>();
 	auto OnComplete = FOnFindSessionsCompleteDelegate::CreateLambda([Promise, FindSessionsSettings](bool Success) 
 	{
 		if (Success)
@@ -525,7 +525,7 @@ SD::TExpectedFuture<TArray<FOnlineSessionSearchResult>> FindSessionsAsync(ULocal
 		}
 		else
 		{
-			Promise->SetValue(SD::Error(-1, TEXT("Session search failed")));
+			Promise->SetValue(FE::Error(-1, TEXT("Session search failed")));
 		}
 	});
 
@@ -535,11 +535,11 @@ SD::TExpectedFuture<TArray<FOnlineSessionSearchResult>> FindSessionsAsync(ULocal
 
 	if (!SessionPtr->FindSessions(*ForPlayer->GetPreferredUniqueNetId(), FindSessionsSettings.ToSharedRef()))
 	{
-		Promise->SetValue(SD::Error(-1, FString::Printf(TEXT("Failed to find '%s' sessions."), *(SessionName.ToString()))));
+		Promise->SetValue(FE::Error(-1, FString::Printf(TEXT("Failed to find '%s' sessions."), *(SessionName.ToString()))));
 	}
 
 	TWeakPtr<IOnlineSession, ESPMode::ThreadSafe> SessionInterfaceWeak = SessionPtr;
-	return Promise->GetFuture().Then([DelegateHandle, SessionInterfaceWeak](SD::TExpected<TArray<FOnlineSessionSearchResult>> ExpectedResults) {
+	return Promise->GetFuture().Then([DelegateHandle, SessionInterfaceWeak](FE::TExpected<TArray<FOnlineSessionSearchResult>> ExpectedResults) {
 		IOnlineSessionPtr SessionInterface = SessionInterfaceWeak.Pin();
 		if (SessionInterface.IsValid())
 		{
@@ -562,14 +562,14 @@ The return value of this function is now a `TExpectedFuture` that, at some point
 //...
 TWeakObjectPtr<ULocalPlayer> WeakLocalPlayer = ForPlayer;
 //Try and find a session to join, or host a session for others to join
-DestroySessionAsync(ForPlayer, NAME_GameSession).Then([WeakLocalPlayer](SD::TExpected<FName>) {
+DestroySessionAsync(ForPlayer, NAME_GameSession).Then([WeakLocalPlayer](FE::TExpected<FName>) {
     if (ULocalPlayer* LP = WeakLocalPlayer.Get())
     {
         return FindSessionsAsync(LP, NAME_GameSession);
     }
     else
     {
-        return SD::MakeErrorFuture<TArray<FOnlineSessionSearchResult>>(SD::Error(...));
+        return FE::MakeErrorFuture<TArray<FOnlineSessionSearchResult>>(FE::Error(...));
     }
 }).Then([WeakLocalPlayer](TArray<FOnlineSessionSearchResult> SessionSearchResults) {
     if (ULocalPlayer* LP = WeakLocalPlayer.Get())
@@ -587,7 +587,7 @@ DestroySessionAsync(ForPlayer, NAME_GameSession).Then([WeakLocalPlayer](SD::TExp
     }
     else
     {
-        return SD::MakeErrorFuture<FName>(SD::Error(...));
+        return FE::MakeErrorFuture<FName>(FE::Error(...));
     }
 }).Then([WeakLocalPlayer](FName TravelToSessionName) {
     if (ULocalPlayer* LP = WeakLocalPlayer.Get())
@@ -607,30 +607,30 @@ DestroySessionAsync(ForPlayer, NAME_GameSession).Then([WeakLocalPlayer](SD::TExp
             FString HostMapName = TEXT("");
             if (!Session->SessionSettings.Get(SETTING_MAPNAME, HostMapName))
             {
-                return SD::MakeErrorFuture<void>(SD::Error(...));
+                return FE::MakeErrorFuture<void>(FE::Error(...));
             }
 
             TravelURL = FString::Printf(TEXT("%s?listen"), *HostMapName);
         }
         else if (!SessionPtr->GetResolvedConnectString(TravelToSessionName, TravelURL))
         {
-            return SD::MakeErrorFuture<void>(SD::Error(...));
+            return FE::MakeErrorFuture<void>(FE::Error(...));
         }
 
         APlayerController* PC = LP->GetPlayerController(LP->GetWorld())
         if (!PC)
         {
-            return SD::MakeErrorFuture<void>(SD::Error(...));
+            return FE::MakeErrorFuture<void>(FE::Error(...));
         }
 
         PC->ClientTravel(TravelURL, ETravelType::TRAVEL_Absolute);
-        return SD::MakeReadyFuture();
+        return FE::MakeReadyFuture();
     }
     else
     {
-        return SD::MakeErrorFuture<void>(SD::Error(...));
+        return FE::MakeErrorFuture<void>(FE::Error(...));
     }
-}).Then([WeakLocalPlayer](SD::TExpected<void> FinalExpected) {
+}).Then([WeakLocalPlayer](FE::TExpected<void> FinalExpected) {
     if (!FinalExpected.IsCompleted())
     {
         //Handle any errors from any of the above operations
