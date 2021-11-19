@@ -9,4 +9,4 @@ class FFutureExtensions : public IFutureExtensions
 
 };
 
-IMPLEMENT_MODULE(FFutureExtensions, SDFutureExtensions)
+IMPLEMENT_MODULE(FFutureExtensions, FutureExtensions)

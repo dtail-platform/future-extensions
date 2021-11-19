@@ -2,9 +2,9 @@
 using UnrealBuildTool;
 using System.IO;
 
-public class SDFutureExtensions : ModuleRules
+public class FutureExtensions : ModuleRules
 {
-	public SDFutureExtensions(ReadOnlyTargetRules Target) : base(Target)
+	public FutureExtensions(ReadOnlyTargetRules Target) : base(Target)
 	{
 		PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
 

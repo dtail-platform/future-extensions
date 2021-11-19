@@ -2,7 +2,7 @@
 #pragma once
 
 #include "Async/Future.h"
-#include "SDFutureExtensions/Private/FutureExtensionsTypeTraits.h"
+#include "FutureExtensions/Private/FutureExtensionsTypeTraits.h"
 #include "Templates/AreTypesEqual.h"
 #include "Async/TaskGraphInterfaces.h"
 #include "Misc/QueuedThreadPool.h"

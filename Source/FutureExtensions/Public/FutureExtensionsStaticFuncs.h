@@ -4,7 +4,7 @@
 
 #include "ExpectedResult.h"
 #include "ExpectedFuture.h"
-#include "SDFutureExtensions/Private/FutureExtensionTaskGraph.h"
+#include "FutureExtensions/Private/FutureExtensionTaskGraph.h"
 
 namespace FE
 {
@@ -73,8 +73,8 @@ namespace FE
 	template<typename T>
 	FE::TExpectedFuture<TArray<T>> WhenAll(const TArray<FE::TExpectedFuture<T>>& Futures) { return WhenAll<T>(Futures, EFailMode::Full); }
 
-	SDFUTUREEXTENSIONS_API FE::TExpectedFuture<void> WhenAll(const TArray<FE::TExpectedFuture<void>>& Futures, const EFailMode FailMode);
-	SDFUTUREEXTENSIONS_API FE::TExpectedFuture<void> WhenAll(const TArray<FE::TExpectedFuture<void>>& Futures);
+	FUTUREEXTENSIONS_API FE::TExpectedFuture<void> WhenAll(const TArray<FE::TExpectedFuture<void>>& Futures, const EFailMode FailMode);
+	FUTUREEXTENSIONS_API FE::TExpectedFuture<void> WhenAll(const TArray<FE::TExpectedFuture<void>>& Futures);
 
 	template<typename T>
 	FE::TExpectedFuture<T> WhenAny(const TArray<FE::TExpectedFuture<T>>& Futures)
@@ -94,5 +94,5 @@ namespace FE
 		return PromiseRef->GetFuture();
 	}
 
-	SDFUTUREEXTENSIONS_API TExpectedFuture<void> WaitAsync(const float DelayInSeconds);
+	FUTUREEXTENSIONS_API TExpectedFuture<void> WaitAsync(const float DelayInSeconds);
 }
