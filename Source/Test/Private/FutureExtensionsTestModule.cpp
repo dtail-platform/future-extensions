@@ -3,4 +3,4 @@
 #include "FutureExtensionsTestModule.h"
 #include <Modules/ModuleManager.h>
 
-IMPLEMENT_GAME_MODULE(FDefaultGameModuleImpl, SDFutureExtensionsTest );
+IMPLEMENT_GAME_MODULE(FDefaultGameModuleImpl, FutureExtensionsTest );
