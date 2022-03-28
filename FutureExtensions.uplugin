@@ -2,7 +2,7 @@
 	"FileVersion": 3,
 	"Version": 0,
 	"VersionName": "1.0",
-	"FriendlyName": "SDFutureExtentions",
+	"FriendlyName": "FutureExtentions",
 	"Description": "Extensions to Async Futures",
 	"Category": "Other",
 	"CreatedBy": "Splash Damage",
@@ -13,15 +13,15 @@
 	"CanContainContent": false,
 	"IsBetaVersion": true,
 	"IsExperimentalVersion": false,
-	"Installed": false,
+	"Installed": true,
 	"Modules": [
 		{
-			"Name": "SDFutureExtensions",
+			"Name": "FutureExtensions",
 			"Type": "Runtime",
 			"LoadingPhase": "Default"
 		},
 		{
-			"Name": "SDFutureExtensionsTest",
+			"Name": "FutureExtensionsTest",
 			"Type": "DeveloperTool",
 			"LoadingPhase": "Default"
 		}

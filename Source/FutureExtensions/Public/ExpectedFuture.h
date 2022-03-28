@@ -2,14 +2,14 @@
 #pragma once
 
 #include "Async/Future.h"
-#include "SDFutureExtensions/Private/FutureExtensionsTypeTraits.h"
+#include "FutureExtensions/Private/FutureExtensionsTypeTraits.h"
 #include "Templates/AreTypesEqual.h"
 #include "Async/TaskGraphInterfaces.h"
 #include "Misc/QueuedThreadPool.h"
 #include "ExpectedResult.h"
 #include "ExpectedFutureOptions.h"
 
-namespace SD
+namespace FE
 {
 	//Forward declarations
 	template <class ResultType>
@@ -279,7 +279,7 @@ namespace SD
 
 		template<class F, class P, typename LifetimeMonitorType>
 		auto ThenImpl(F&& Func, const TExpectedFuture<P>& PrevFuture, FGraphEventRef ContinuationTrigger,
-						const SD::FExpectedFutureOptions& FutureOptions, LifetimeMonitorType LifetimeMonitor)
+						const FE::FExpectedFutureOptions& FutureOptions, LifetimeMonitorType LifetimeMonitor)
 		{
 			check(PrevFuture.IsValid());
 
@@ -362,7 +362,7 @@ namespace SD
 		}
 
 		template<class F>
-		auto Then(F&& Func, const SD::FExpectedFutureOptions& FutureOptions = SD::FExpectedFutureOptions()) const
+		auto Then(F&& Func, const FE::FExpectedFutureOptions& FutureOptions = FE::FExpectedFutureOptions()) const
 		{
 			check(IsValid());
 			return FutureContinuationDetails::ThenImpl(Forward<F>(Func), *this,
@@ -370,7 +370,7 @@ namespace SD
 		}
 
 		template<class F, typename TOwnerType>
-		auto Then(TOwnerType* Owner, F&& Func, const SD::FExpectedFutureOptions& FutureOptions = SD::FExpectedFutureOptions()) const
+		auto Then(TOwnerType* Owner, F&& Func, const FE::FExpectedFutureOptions& FutureOptions = FE::FExpectedFutureOptions()) const
 		{
 			check(IsValid());
 			return FutureContinuationDetails::ThenImpl(Forward<F>(Func), *this,
@@ -450,12 +450,12 @@ namespace SD
 
 		void SetValue(R&& Result)
 		{
-			SetValue(SD::MakeReadyExpected(Forward<R>(Result)));
+			SetValue(FE::MakeReadyExpected(Forward<R>(Result)));
 		}
 
 		void SetValue(const R& Result)
 		{
-			SetValue(SD::MakeReadyExpected(Result));
+			SetValue(FE::MakeReadyExpected(Result));
 		}
 
 		FutureExecutionDetails::FExecutionDetails GetExecutionDetails() const
@@ -465,7 +465,7 @@ namespace SD
 
 		void Cancel()
 		{
-			SetValue(SD::MakeCancelledExpected<R>());
+			SetValue(FE::MakeCancelledExpected<R>());
 		}
 
 	private:
@@ -518,7 +518,7 @@ namespace SD
 		}
 
 		template<class F>
-		auto Then(F&& Func, const SD::FExpectedFutureOptions& FutureOptions = SD::FExpectedFutureOptions()) const
+		auto Then(F&& Func, const FE::FExpectedFutureOptions& FutureOptions = FE::FExpectedFutureOptions()) const
 		{
 			check(IsValid());
 			return FutureContinuationDetails::ThenImpl(Forward<F>(Func), *this,
@@ -526,7 +526,7 @@ namespace SD
 		}
 
 		template<class F, typename TOwnerType>
-		auto Then(TOwnerType* Owner, F&& Func, const SD::FExpectedFutureOptions& FutureOptions = SD::FExpectedFutureOptions()) const
+		auto Then(TOwnerType* Owner, F&& Func, const FE::FExpectedFutureOptions& FutureOptions = FE::FExpectedFutureOptions()) const
 		{
 			check(IsValid());
 			return FutureContinuationDetails::ThenImpl(Forward<F>(Func), *this,
@@ -597,7 +597,7 @@ namespace SD
 
 		void SetValue()
 		{
-			SetValue(SD::MakeReadyExpected());
+			SetValue(FE::MakeReadyExpected());
 		}
 
 		FutureExecutionDetails::FExecutionDetails GetExecutionDetails() const
@@ -607,7 +607,7 @@ namespace SD
 
 		void Cancel()
 		{
-			SetValue(SD::MakeCancelledExpected());
+			SetValue(FE::MakeCancelledExpected());
 		}
 
 	private:
@@ -618,7 +618,7 @@ namespace SD
 	TExpectedFuture<T> MakeReadyFuture(T&& InValue)
 	{
 		TExpectedPromise<T> ValuePromise = TExpectedPromise<T>();
-		ValuePromise.SetValue(SD::MakeReadyExpected<T>(Forward<T>(InValue)));
+		ValuePromise.SetValue(FE::MakeReadyExpected<T>(Forward<T>(InValue)));
 		return ValuePromise.GetFuture();
 	}
 

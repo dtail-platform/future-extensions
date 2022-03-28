@@ -36,7 +36,7 @@ void FFutureTestSpec_Combined::Define()
 	{
 		LatentIt("Success", [this](const auto& Done)
 		{
-				SD::WhenAll<int32>({ SD::MakeReadyFuture<int32>(1), SD::MakeReadyFuture<int32>(2), SD::MakeReadyFuture<int32>(4) })
+				FE::WhenAll<int32>({ FE::MakeReadyFuture<int32>(1), FE::MakeReadyFuture<int32>(2), FE::MakeReadyFuture<int32>(4) })
 					.Then([this](const TArray<int32>& Result)
 						{
 							int32 Total = 0;
@@ -46,7 +46,7 @@ void FFutureTestSpec_Combined::Define()
 							}
 							return Total;
 						})
-					.Then([this, Done](const SD::TExpected<int32>& Expected)
+					.Then([this, Done](const FE::TExpected<int32>& Expected)
 						{
 							TestFalse("Result is an error", Expected.IsError());
 							TestTrue("Result is completed", Expected.IsCompleted());
@@ -57,8 +57,8 @@ void FFutureTestSpec_Combined::Define()
 
 		LatentIt("Fail", [this](const auto& Done)
 			{
-				SD::WhenAll<int32>({ SD::MakeReadyFuture<int32>(1), SD::MakeReadyFuture<int32>(2), SD::MakeErrorFuture<int32>(SD::Error(ErrorCode, ErrorContext, TEXT("Bad times!"))) })
-					.Then([this, Done](const SD::TExpected<TArray<int32>>& Expected)
+				FE::WhenAll<int32>({ FE::MakeReadyFuture<int32>(1), FE::MakeReadyFuture<int32>(2), FE::MakeErrorFuture<int32>(FE::Error(ErrorCode, ErrorContext, TEXT("Bad times!"))) })
+					.Then([this, Done](const FE::TExpected<TArray<int32>>& Expected)
 						{
 							TestTrue("Result is an error", Expected.IsError());
 							TestFalse("Result is completed", Expected.IsCompleted());
@@ -72,10 +72,10 @@ void FFutureTestSpec_Combined::Define()
 		{
 		LatentIt("Success", [this](const auto& Done)
 			{
-				SD::TExpectedPromise<int32> FirstPromise;
-				SD::TExpectedPromise<int32> SecondPromise;
-				SD::WhenAny<int32>({ FirstPromise.GetFuture(), SecondPromise.GetFuture() })
-					.Then([this, Done](const SD::TExpected<int32>& Expected)
+				FE::TExpectedPromise<int32> FirstPromise;
+				FE::TExpectedPromise<int32> SecondPromise;
+				FE::WhenAny<int32>({ FirstPromise.GetFuture(), SecondPromise.GetFuture() })
+					.Then([this, Done](const FE::TExpected<int32>& Expected)
 						{
 							TestFalse("Result is an error", Expected.IsError());
 							TestTrue("Result is completed", Expected.IsCompleted());
@@ -88,17 +88,17 @@ void FFutureTestSpec_Combined::Define()
 
 		LatentIt("Fail", [this](const auto& Done)
 			{
-				SD::TExpectedPromise<int32> FirstPromise;
-				SD::TExpectedPromise<int32> SecondPromise;
-				SD::WhenAny<int32>({ FirstPromise.GetFuture(), SecondPromise.GetFuture() })
-					.Then([this, Done](const SD::TExpected<int32>& Expected)
+				FE::TExpectedPromise<int32> FirstPromise;
+				FE::TExpectedPromise<int32> SecondPromise;
+				FE::WhenAny<int32>({ FirstPromise.GetFuture(), SecondPromise.GetFuture() })
+					.Then([this, Done](const FE::TExpected<int32>& Expected)
 						{
 							TestTrue("Result is an error", Expected.IsError());
 							TestFalse("Result is completed", Expected.IsCompleted());
 							TestEqual("Captured String", *(Expected.GetError()->GetErrorInfo()), TEXT("Bad times!"));
 							Done.Execute();
 						});
-				FirstPromise.SetValue(SD::Error(ErrorCode, ErrorContext, TEXT("Bad times!")));
+				FirstPromise.SetValue(FE::Error(ErrorCode, ErrorContext, TEXT("Bad times!")));
 				SecondPromise.SetValue(1);
 			});
 	});

@@ -1,9 +1,9 @@
 // Copyright(c) Splash Damage. All rights reserved.
 using UnrealBuildTool;
 
-public class SDFutureExtensionsTest : ModuleRules
+public class FutureExtensionsTest : ModuleRules
 {
-	public SDFutureExtensionsTest(ReadOnlyTargetRules Target) : base(Target)
+	public FutureExtensionsTest(ReadOnlyTargetRules Target) : base(Target)
 	{
 		PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
 
@@ -13,7 +13,7 @@ public class SDFutureExtensionsTest : ModuleRules
         });
 
         PrivateDependencyModuleNames.AddRange(new string[] {
-			"SDFutureExtensions"
+			"FutureExtensions"
 		});
 	}
 }

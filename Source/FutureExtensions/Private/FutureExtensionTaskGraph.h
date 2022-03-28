@@ -6,7 +6,7 @@
 
 //TODO: can be rewriten with C++17 `if constexpr`
 
-namespace SD
+namespace FE
 {
 	namespace FutureExtensionTaskGraph
 	{
@@ -376,7 +376,7 @@ namespace SD
 					}
 					else
 					{
-						SharedPromise->SetValue(SD::Error(Errors::ERROR_OBJECT_DESTROYED, TEXT("Lifetime Monitor Object could not be pinned")));
+						SharedPromise->SetValue(FE::Error(Errors::ERROR_OBJECT_DESTROYED, TEXT("Lifetime Monitor Object could not be pinned")));
 					}
 				}
 			}
@@ -517,7 +517,7 @@ namespace SD
 					}
 					else
 					{
-						Promise->SetValue(SD::Error(Errors::ERROR_OBJECT_DESTROYED, TEXT("Lifetime Monitor Object could not be pinned")));
+						Promise->SetValue(FE::Error(Errors::ERROR_OBJECT_DESTROYED, TEXT("Lifetime Monitor Object could not be pinned")));
 					}
 				}
 			}

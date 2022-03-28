@@ -30,8 +30,8 @@ protected:
 		: IAutomationLatentCommand()
 	{}
 
-	virtual SD::TExpectedFuture<T> Setup() = 0;
-	virtual void Validate(const SD::TExpected<T>& Expected, FSDAutomationTest& CurrentTest) = 0;
+	virtual FE::TExpectedFuture<T> Setup() = 0;
+	virtual void Validate(const FE::TExpected<T>& Expected, FSDAutomationTest& CurrentTest) = 0;
 
 private:
 	enum class EState
@@ -55,7 +55,7 @@ bool FExpectedFutureLatentTestBase<T>::Update()
 	{
 		TestState = EState::Running;
 
-		Setup().Then([this](SD::TExpected<T> Expected) {
+		Setup().Then([this](FE::TExpected<T> Expected) {
 			FSDAutomationTest* CurrentSDTest = 
 				static_cast<FSDAutomationTest*>(FAutomationTestFramework::Get().GetCurrentTest());
 			if (CurrentSDTest != nullptr)
@@ -86,8 +86,8 @@ bool FExpectedFutureLatentTestBase<T>::Update()
 	class TestName##_Latent : public FExpectedFutureLatentTestBase<Type>	\
 	{																		\
 	protected:																\
-		SD::TExpectedFuture<Type> Setup() override;							\
-		void Validate(const SD::TExpected<Type>& Expected,					\
+		FE::TExpectedFuture<Type> Setup() override;							\
+		void Validate(const FE::TExpected<Type>& Expected,					\
 						FSDAutomationTest& CurrentTest) override;			\
 	};																		\
 	IMPLEMENT_EXPECTED_FUTURE_LATENT_TEST(TestName)
@@ -96,8 +96,8 @@ bool FExpectedFutureLatentTestBase<T>::Update()
 	class TestName##_Latent : public FExpectedFutureLatentTestBase<Type>		\
 	{																			\
 	protected:																	\
-		SD::TExpectedFuture<Type> Setup() override;								\
-		void Validate(const SD::TExpected<Type>& Expected,						\
+		FE::TExpectedFuture<Type> Setup() override;								\
+		void Validate(const FE::TExpected<Type>& Expected,						\
 						FSDAutomationTest& CurrentTest) override;				\
 		Param CaptureParam;														\
 	};																			\

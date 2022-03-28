@@ -31,13 +31,13 @@ void FFutureTestSpec_ExecutionPolicy::Define()
 {
 	LatentIt("Can run in a different thread", [this](const auto& Done)
 	{
-		SD::Async([]()
+		FE::Async([]()
 		{
-			return SD::MakeReadyExpected(FTaskGraphInterface::Get().GetCurrentThreadIfKnown());
-		}, SD::FExpectedFutureOptionsBuilder()
+			return FE::MakeReadyExpected(FTaskGraphInterface::Get().GetCurrentThreadIfKnown());
+		}, FE::FExpectedFutureOptionsBuilder()
 			.SetDesiredExecutionThread(ENamedThreads::ActualRenderingThread)
 			.Build())
-		.Then([this, Done](SD::TExpected<ENamedThreads::Type> Expected)
+		.Then([this, Done](FE::TExpected<ENamedThreads::Type> Expected)
 		{
 			TestTrue("Async function is completed", Expected.IsCompleted());
 			TestEqual("Execution thread", *Expected, ENamedThreads::ActualRenderingThread);
@@ -49,13 +49,13 @@ void FFutureTestSpec_ExecutionPolicy::Define()
 	{
 		auto CurrentThread = FTaskGraphInterface::Get().GetCurrentThreadIfKnown();
 
-		SD::Async([]()
+		FE::Async([]()
 		{
-			return SD::MakeReadyExpected(FTaskGraphInterface::Get().GetCurrentThreadIfKnown());
-		}, SD::FExpectedFutureOptionsBuilder()
-			.SetExecutionPolicy(SD::EExpectedFutureExecutionPolicy::Current)
+			return FE::MakeReadyExpected(FTaskGraphInterface::Get().GetCurrentThreadIfKnown());
+		}, FE::FExpectedFutureOptionsBuilder()
+			.SetExecutionPolicy(FE::EExpectedFutureExecutionPolicy::Current)
 			.Build())
-		.Then([this, Done, CurrentThread](SD::TExpected<ENamedThreads::Type> Expected)
+		.Then([this, Done, CurrentThread](FE::TExpected<ENamedThreads::Type> Expected)
 		{
 			TestTrue("Async function is completed", Expected.IsCompleted());
 			TestEqual("Execution thread", *Expected, CurrentThread);
@@ -67,14 +67,14 @@ void FFutureTestSpec_ExecutionPolicy::Define()
 	{
 		auto CurrentThread = FTaskGraphInterface::Get().GetCurrentThreadIfKnown();
 
-		SD::Async([]()
+		FE::Async([]()
 		{
-			return SD::MakeReadyExpected(FTaskGraphInterface::Get().GetCurrentThreadIfKnown());
-		}, SD::FExpectedFutureOptionsBuilder()
-			.SetExecutionPolicy(SD::EExpectedFutureExecutionPolicy::NamedThread)
+			return FE::MakeReadyExpected(FTaskGraphInterface::Get().GetCurrentThreadIfKnown());
+		}, FE::FExpectedFutureOptionsBuilder()
+			.SetExecutionPolicy(FE::EExpectedFutureExecutionPolicy::NamedThread)
 			.SetDesiredExecutionThread(ENamedThreads::GameThread)
 			.Build())
-		.Then([this, Done, CurrentThread](SD::TExpected<ENamedThreads::Type> Expected)
+		.Then([this, Done, CurrentThread](FE::TExpected<ENamedThreads::Type> Expected)
 		{
 			TestTrue("Async function is completed", Expected.IsCompleted());
 			TestEqual("Execution thread", *Expected, ENamedThreads::GameThread);
@@ -84,20 +84,20 @@ void FFutureTestSpec_ExecutionPolicy::Define()
 
 	LatentIt("Can use previous thread in Then", [this](const auto& Done)
 	{
-		SD::Async([]()
+		FE::Async([]()
 		{
-			return SD::MakeReadyExpected();
-		}, SD::FExpectedFutureOptionsBuilder()
-			.SetExecutionPolicy(SD::EExpectedFutureExecutionPolicy::NamedThread)
+			return FE::MakeReadyExpected();
+		}, FE::FExpectedFutureOptionsBuilder()
+			.SetExecutionPolicy(FE::EExpectedFutureExecutionPolicy::NamedThread)
 			.SetDesiredExecutionThread(ENamedThreads::GameThread)
 			.Build())
-		.Then([](SD::TExpected<void> Expected)
+		.Then([](FE::TExpected<void> Expected)
 		{
-			return SD::MakeReadyExpected(FTaskGraphInterface::Get().GetCurrentThreadIfKnown());
-		}, SD::FExpectedFutureOptionsBuilder()
-			.SetExecutionPolicy(SD::EExpectedFutureExecutionPolicy::Inline)
+			return FE::MakeReadyExpected(FTaskGraphInterface::Get().GetCurrentThreadIfKnown());
+		}, FE::FExpectedFutureOptionsBuilder()
+			.SetExecutionPolicy(FE::EExpectedFutureExecutionPolicy::Inline)
 			.Build())
-		.Then([this, Done](SD::TExpected<ENamedThreads::Type> Expected)
+		.Then([this, Done](FE::TExpected<ENamedThreads::Type> Expected)
 		{
 			TestTrue("Async function is completed", Expected.IsCompleted());
 			TestEqual("Execution thread", *Expected, ENamedThreads::GameThread);
@@ -107,13 +107,13 @@ void FFutureTestSpec_ExecutionPolicy::Define()
 
 	LatentIt("Can inline thread in next Then", [this](const auto& Done)
 	{
-		SD::Async([]()
+		FE::Async([]()
 		{
-			return SD::MakeReadyExpected(FTaskGraphInterface::Get().GetCurrentThreadIfKnown());
-		}, SD::FExpectedFutureOptionsBuilder()
-			.SetExecutionPolicy(SD::EExpectedFutureExecutionPolicy::ThreadPool)
+			return FE::MakeReadyExpected(FTaskGraphInterface::Get().GetCurrentThreadIfKnown());
+		}, FE::FExpectedFutureOptionsBuilder()
+			.SetExecutionPolicy(FE::EExpectedFutureExecutionPolicy::ThreadPool)
 			.Build())
-		.Then([this, Done](SD::TExpected<ENamedThreads::Type> Expected)
+		.Then([this, Done](FE::TExpected<ENamedThreads::Type> Expected)
 		{
 			TestTrue("Async function is completed", Expected.IsCompleted());
 			TestTrue("Executed on the thread pool", (*Expected & ENamedThreads::ThreadIndexMask) == ENamedThreads::AnyThread);
@@ -123,17 +123,17 @@ void FFutureTestSpec_ExecutionPolicy::Define()
 
 	LatentIt("Can schedule Then on a worker thread", [this](const auto& Done)
 	{
-		SD::Async([]()
+		FE::Async([]()
 		{
-			return SD::MakeReadyExpected();
+			return FE::MakeReadyExpected();
 		})
-		.Then([](SD::TExpected<void> Expected)
+		.Then([](FE::TExpected<void> Expected)
 		{
-			return SD::MakeReadyExpected(FTaskGraphInterface::Get().GetCurrentThreadIfKnown());
-		}, SD::FExpectedFutureOptionsBuilder()
-			.SetExecutionPolicy(SD::EExpectedFutureExecutionPolicy::ThreadPool)
+			return FE::MakeReadyExpected(FTaskGraphInterface::Get().GetCurrentThreadIfKnown());
+		}, FE::FExpectedFutureOptionsBuilder()
+			.SetExecutionPolicy(FE::EExpectedFutureExecutionPolicy::ThreadPool)
 			.Build())
-		.Then([this, Done](SD::TExpected<ENamedThreads::Type> Expected)
+		.Then([this, Done](FE::TExpected<ENamedThreads::Type> Expected)
 		{
 			TestTrue("Async function is completed", Expected.IsCompleted());
 			TestTrue("Executed on the thread pool", (*Expected & ENamedThreads::ThreadIndexMask) == ENamedThreads::AnyThread);

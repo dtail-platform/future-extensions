@@ -3,20 +3,20 @@
 
 #include "Containers/Ticker.h"
 
-SD::TExpectedFuture<void> SD::WhenAll(const TArray<SD::TExpectedFuture<void>>& Futures, const EFailMode FailMode)
+FE::TExpectedFuture<void> FE::WhenAll(const TArray<FE::TExpectedFuture<void>>& Futures, const EFailMode FailMode)
 {
 	if (Futures.Num() == 0)
 	{
-		return SD::MakeReadyFuture();
+		return FE::MakeReadyFuture();
 	}
 
 	const auto CounterRef = MakeShared<std::atomic<int32>, ESPMode::ThreadSafe>(Futures.Num());
-	const auto PromiseRef = MakeShared<SD::TExpectedPromise<void>, ESPMode::ThreadSafe>();
-	const auto FirstErrorRef = MakeShared<SD::TExpectedPromise<void>, ESPMode::ThreadSafe>();
+	const auto PromiseRef = MakeShared<FE::TExpectedPromise<void>, ESPMode::ThreadSafe>();
+	const auto FirstErrorRef = MakeShared<FE::TExpectedPromise<void>, ESPMode::ThreadSafe>();
 
 	const auto SetPromise = [FirstErrorRef, PromiseRef]()
 	{
-		FirstErrorRef->GetFuture().Then([PromiseRef](SD::TExpected<void> Result) {PromiseRef->SetValue(MoveTemp(Result)); });
+		FirstErrorRef->GetFuture().Then([PromiseRef](FE::TExpected<void> Result) {PromiseRef->SetValue(MoveTemp(Result)); });
 	};
 
 	if (FailMode == EFailMode::Fast)
@@ -26,11 +26,11 @@ SD::TExpectedFuture<void> SD::WhenAll(const TArray<SD::TExpectedFuture<void>>& F
 
 	for (const auto& Future : Futures)
 	{
-		Future.Then([CounterRef, FirstErrorRef, SetPromise, FailMode](const SD::TExpected<void>& Result)
+		Future.Then([CounterRef, FirstErrorRef, SetPromise, FailMode](const FE::TExpected<void>& Result)
 			{
 				if (Result.IsCompleted() == false)
 				{
-					FirstErrorRef->SetValue(SD::TExpected<void>(Result));
+					FirstErrorRef->SetValue(FE::TExpected<void>(Result));
 				}
 
 				if (--(CounterRef.Get()) == 0)
@@ -47,12 +47,12 @@ SD::TExpectedFuture<void> SD::WhenAll(const TArray<SD::TExpectedFuture<void>>& F
 	return PromiseRef->GetFuture();
 }
 
-SD::TExpectedFuture<void> SD::WhenAll(const TArray<TExpectedFuture<void>>& Futures)
+FE::TExpectedFuture<void> FE::WhenAll(const TArray<TExpectedFuture<void>>& Futures)
 {
 	return WhenAll(Futures, EFailMode::Full);
 }
 
-SD::TExpectedFuture<void> SD::WaitAsync(const float DelayInSeconds)
+FE::TExpectedFuture<void> FE::WaitAsync(const float DelayInSeconds)
 {
 	const TSharedRef<TExpectedPromise<void>> Promise = MakeShared<TExpectedPromise<void>>();
 

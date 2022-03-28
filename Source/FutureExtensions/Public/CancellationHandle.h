@@ -4,7 +4,7 @@
 #include "Templates/SharedPointer.h"
 #include "Misc/ScopeLock.h"
 
-namespace SD
+namespace FE
 {
 	class FCancellationHandle;
 

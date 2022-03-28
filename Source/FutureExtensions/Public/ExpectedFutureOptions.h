@@ -5,7 +5,7 @@
 #include "Async/TaskGraphInterfaces.h"
 #include "FutureLogging.h"
 
-namespace SD
+namespace FE
 {
 	enum class EExpectedFutureExecutionPolicy
 	{
