@@ -87,17 +87,17 @@ namespace FE
 
 			using IsPlainValueOrExpected = TIntegralConstant<bool,	!IsExpectedFuture::value &&
 																	(TIsExpected<ReturnType>::value ||
-																	!TIsVoidType<ReturnType>::Value)>;
+																	!std::is_void<ReturnType>::value)>;
 
 			using IsNonExpectedAndVoid = TIntegralConstant<bool, !TIsExpected<ReturnType>::value &&
-																TIsVoidType<ReturnType>::Value>;
+																std::is_void<ReturnType>::value>;
 		};
 
 		template<typename ParamType>
 		struct TParamTypeSpecializations
 		{
-			using IsVoidValueBased = TIsVoidType<ParamType>;
-			using IsNonVoidValueBased = TIntegralConstant<bool, !TIsVoidType<ParamType>::Value && 
+			using IsVoidValueBased = std::is_void<ParamType>;
+			using IsNonVoidValueBased = TIntegralConstant<bool, !std::is_void<ParamType>::value && 
 																!TIsExpected<ParamType>::value>;
 			using IsExpectedBased = TIsExpected<ParamType>;
 		};
@@ -172,7 +172,7 @@ namespace FE
 		struct TContinuationFunctorReturnType {};
 
 		template<typename F, typename P>
-		struct TContinuationFunctorReturnType<F, P, typename TEnableIf<!TIsVoidType<P>::Value>::Type>
+		struct TContinuationFunctorReturnType<F, P, typename TEnableIf<!std::is_void<P>::value>::Type>
 		{
 #if ENGINE_MAJOR_VERSION >= 4 && ENGINE_MINOR_VERSION >= 26 && ENGINE_PATCH_VERSION >= 1
 			using ReturnType = typename TInvokeResult<typename std::decay_t<F>, P>::Type;
@@ -184,7 +184,7 @@ namespace FE
 		};
 
 		template<typename F, typename P>
-		struct TContinuationFunctorReturnType<F, P, typename TEnableIf<TIsVoidType<P>::Value>::Type>
+		struct TContinuationFunctorReturnType<F, P, typename TEnableIf<std::is_void<P>::value>::Type>
 		{
 #if ENGINE_MAJOR_VERSION >= 4 && ENGINE_MINOR_VERSION >= 26 && ENGINE_PATCH_VERSION >= 1
 			using ReturnType = typename TInvokeResult<typename std::decay_t<F>>::Type;
@@ -205,7 +205,7 @@ namespace FE
 
 			using IsReturnsVoidAndTakesVoid =
 				TIntegralConstant<bool, ReturnSpec::IsNonExpectedAndVoid::Value &&
-										ParamSpec::IsVoidValueBased::Value>;
+										ParamSpec::IsVoidValueBased::value>;
 
 			using IsReturnsVoidAndTakesValue =
 				TIntegralConstant<bool, ReturnSpec::IsNonExpectedAndVoid::Value &&
@@ -217,7 +217,7 @@ namespace FE
 
 			using IsReturnsExpectedFutureAndTakesVoid =
 				TIntegralConstant<bool, ReturnSpec::IsExpectedFuture::value &&
-										ParamSpec::IsVoidValueBased::Value>;
+										ParamSpec::IsVoidValueBased::value>;
 
 			using IsReturnsExpectedFutureAndTakesValue =
 				TIntegralConstant<bool, ReturnSpec::IsExpectedFuture::value &&
@@ -229,7 +229,7 @@ namespace FE
 
 			using IsReturnsPlainValueOrExpectedAndTakesVoid =
 				TIntegralConstant<bool, ReturnSpec::IsPlainValueOrExpected::Value &&
-										ParamSpec::IsVoidValueBased::Value>;
+										ParamSpec::IsVoidValueBased::value>;
 
 			using IsReturnsPlainValueOrExpectedAndTakesValue =
 				TIntegralConstant<bool, ReturnSpec::IsPlainValueOrExpected::Value &&
